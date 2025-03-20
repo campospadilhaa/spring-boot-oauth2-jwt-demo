@@ -3,14 +3,18 @@ package com.devsuperior.demo.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 // adicionar no arquivo pom.xml as dependências do Spring Security
 
 // classe criada para configurar o Spring Security
+// os métodos aqui criados são componentes
 @Configuration
 public class SecurityConfig {
 
+	// criação do componente que cria a configuração do Spring Security
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -25,5 +29,12 @@ public class SecurityConfig {
 		// aqui está sendo tudo permitido. As restrições necessárias serão configuradas em nível de rota
 
 		return http.build();
+	}
+
+	// criação do componente para criptografar a senha do usuário
+	@Bean
+	public PasswordEncoder getPasswordEncoder() {
+
+		return new BCryptPasswordEncoder();
 	}
 }
