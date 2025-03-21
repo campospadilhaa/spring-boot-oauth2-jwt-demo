@@ -1,9 +1,13 @@
 package com.devsuperior.demo.entities;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,9 +19,10 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "tb_user")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,8 +31,13 @@ public class User {
 
     @Column(unique = true)
     private String email;
+
     private String password;
 
+    // relacionamento muitos para muitos não retorna a lista de roles, relacionametno LAZY
+    // para forçar este retorno é possível configurar o relacionamento com FetchType.EAGER
+    // porém, não é uma boa prática, isto porque nem sempre desejaremos o User com os seus roles
+    //@ManyToMany(fetch = FetchType.EAGER)
     @ManyToMany
     @JoinTable(name = "tb_user_role",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -109,4 +119,44 @@ public class User {
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+
+		// retorna a lista de "roles" que implementa "GrantedAuthority"
+		return roles;
+	}
+
+	@Override
+	public String getUsername() {
+
+		// retorna o atributo "email" que será utilizado como o username
+		return email;
+	}
+
+	// atribuido o valor true porque neste projeto não utilizaremos estes métodos necessários para a interface "UserDetails"
+	@Override
+	public boolean isAccountNonExpired() {
+		//return false;
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		//return false;
+		return true;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		//return false;
+		return true;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		//return false;
+		return true;
+	}
+	////
 }
