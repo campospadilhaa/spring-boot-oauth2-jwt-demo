@@ -10,6 +10,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+// ATENÇÃO:
+// -------
+// esta classe não está sendo utilizada. Os métodos foram movidos
+// sendo substituída pela classe ResourceServerConfig.java
+//
+// A clase SecurityConfig.java foi utilizada didaticamente para evolução do projeto
+
+
 // adicionar no arquivo pom.xml as dependências do Spring Security
 
 // classe criada para configurar o Spring Security
