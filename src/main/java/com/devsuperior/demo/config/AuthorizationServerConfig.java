@@ -52,6 +52,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
+// Classe que configura as permissões a nível do servidor de aplicação;
+
 @Configuration
 public class AuthorizationServerConfig {
 
@@ -70,18 +72,28 @@ public class AuthorizationServerConfig {
 	@Autowired
 	private UserDetailsService userDetailsService;
 
+	// utilização das classes auxiliares: CustomPasswordAuthenticationConverter; CustomPasswordAuthenticationProvider; CustomPasswordAuthenticationToken; CustomUserAuthorities
+	// para customizar a GrantTypePassword
+
 	@Bean
-	@Order(2)
+	@Order(2) // os order: 1 e 3, estão no ResourceServerConfig.java
 	public SecurityFilterChain asSecurityFilterChain(HttpSecurity http) throws Exception {
 
+		// integrando o Spring Security com o OAuth2
 		OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
 
 		// @formatter:off
 		http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 			.tokenEndpoint(tokenEndpoint -> tokenEndpoint
+
+				// customização do token
 				.accessTokenRequestConverter(new CustomPasswordAuthenticationConverter())
+
+				// configuração da autenticação, leitura das credenciais. Configurando o Spring Security com OAuth2 
+				// utilizando o 'UserDetailsService.java' que criamos para buscar o usuário passando o nome do usuário (username)
 				.authenticationProvider(new CustomPasswordAuthenticationProvider(authorizationService(), tokenGenerator(), userDetailsService, passwordEncoder())));
 
+		// configuração para trabalhar com o token JWT
 		http.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()));
 		// @formatter:on
 
@@ -98,11 +110,13 @@ public class AuthorizationServerConfig {
 		return new InMemoryOAuth2AuthorizationConsentService();
 	}
 
+	// criação do componente para criptografar a senha do usuário
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
+	// registro do cliente autorizado a utilizar a aplicação
 	@Bean
 	public RegisteredClientRepository registeredClientRepository() {
 		// @formatter:off
@@ -118,6 +132,7 @@ public class AuthorizationServerConfig {
 			.build();
 		// @formatter:on
 
+		// registro do objeto em memória
 		return new InMemoryRegisteredClientRepository(registeredClient);
 	}
 
@@ -126,6 +141,8 @@ public class AuthorizationServerConfig {
 		// @formatter:off
 		return TokenSettings.builder()
 			.accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+
+			// configuração do tempo de duração o token obtido do application.properties: ${security.jwt.duration}
 			.accessTokenTimeToLive(Duration.ofSeconds(jwtDurationSeconds))
 			.build();
 		// @formatter:on
@@ -150,6 +167,8 @@ public class AuthorizationServerConfig {
 		return new DelegatingOAuth2TokenGenerator(jwtGenerator, accessTokenGenerator);
 	}
 
+	// customizador do token
+	// 
 	@Bean
 	public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
 		return context -> {
@@ -158,19 +177,26 @@ public class AuthorizationServerConfig {
 			List<String> authorities = user.getAuthorities().stream().map(x -> x.getAuthority()).toList();
 			if (context.getTokenType().getValue().equals("access_token")) {
 				// @formatter:off
+
+				// configuração das reivindicações (claim's)
+				// que estarão contidas no corpo do 'PAYLOAD' do token
 				context.getClaims()
 					.claim("authorities", authorities)
 					.claim("username", user.getUsername());
+
 				// @formatter:on
 			}
 		};
 	}
 
+	// decodificador do token
 	@Bean
 	public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
 		return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
 	}
 
+	// sequencia de 3 (três) métodos que realizam a assinatura do token
+	// criação da chave RSA que o meu AuthorizaginServer reconhecerá como uma chave válida
 	@Bean
 	public JWKSource<SecurityContext> jwkSource() {
 		RSAKey rsaKey = generateRsa();
@@ -196,4 +222,5 @@ public class AuthorizationServerConfig {
 		}
 		return keyPair;
 	}
+	////
 }

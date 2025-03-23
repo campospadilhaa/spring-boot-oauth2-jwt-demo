@@ -22,13 +22,14 @@ import org.springframework.security.web.SecurityFilterChain;
 
 // classe criada para configurar o Spring Security
 // os métodos aqui criados são componentes
-@Configuration
+
+// comentada a anotação '@Configuration' para desabilitar a utilização do component
+// @Configuration
 public class SecurityConfig {
 
 	// criação do componente para criptografar a senha do usuário
 	@Bean
 	public PasswordEncoder getPasswordEncoder() {
-
 		return new BCryptPasswordEncoder();
 	}
 
